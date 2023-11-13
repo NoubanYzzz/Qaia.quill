@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Information</title>
+    <style>
+        body {
+            background-color: #ffffff; /* General white background with a little beige color */
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+
+        #header {
+            text-align: center;
+            padding: 20px;
+            background-color: #ffffff; /* Honey color */
+        }
+
+        #logo {
+            max-width: 100%;
+            height: auto;
+        }
+
+        #btnContainer {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .btn {
+            background-color: #f0e68c; /* Honey color */
+            color: #000; /* Clear black font */
+            padding: 15px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #flightInfoOptions {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .option {
+            margin: 10px;
+            padding: 10px;
+            background-color: #f0e68c; /* Honey color */
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div id="header">
+        <img id="logo" src="C:\Users\user\OneDrive\Desktop\scanner\2015_QAIA_logo.png" alt="Logo">
+    </div>
+
+    <div id="btnContainer">
+        <button class="btn" onclick="showFlightInfo()">Flight Information</button>
+        <button class="btn" onclick="scanBarcode()">Scan Ticket</button>
+    </div>
+
+    <div id="flightInfoOptions">
+        <button class="option" onclick="redirectToURL('https://qaiairport.com/en/flight-information/Pages/Arrivals.aspx')">Arrivals</button>
+        <button class="option" onclick="redirectToURL('https://qaiairport.com/en/flight-information/Pages/Departures.aspx')">Departures</button>
+    </div>
+    <div id="interactive" class="viewport"></div>
+    <canvas id="canvas" class="viewport"></canvas>
+    
+    <script src="https://cdn.rawgit.com/serratus/quaggaJS/master/dist/quagga.min.js"></script>
+    <script>
+        
+        function showFlightInfo() {
+            document.getElementById("flightInfoOptions").style.display = "flex";
+        }
+
+         function scanBarcode() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        initQuagga();
+                        document.getElementById('interactive').style.display = 'block';
+                        document.getElementById('canvas').style.display = 'block';
+                        document.getElementById('logo').style.display = 'none';
+                        document.getElementById('interactive').appendChild(Quagga.canvas.dom.image);
+                        Quagga.start();
+                    })
+                    .catch((err) => {
+                        console.error('Error accessing camera: ', err);
+                    });
+            } else {
+                alert('Camera access not supported by your browser');
+            }
+        }
+
+        function initQuagga() {
+            Quagga.init({
+                inputStream: {
+                    name: 'Live',
+                    type: 'LiveStream',
+                    target: document.querySelector('#interactive'),
+                    constraints: {
+                        width: 480,
+                        height: 320,
+                        facingMode: 'environment', // or user
+                        
+                    },
+                },
+                decoder: {
+                    readers: ['code_128_reader', 'ean_reader', 'ean_8_reader', 'code_39_reader', 'code_39_vin_reader', 'codabar_reader', 'upc_reader', 'upc_e_reader', 'i2of5_reader'],
+                },
+            }, function (err) {
+                if (err) {
+                    console.error('Error initializing Quagga: ', err);
+                    return;
+                }
+                Quagga.start();
+            });
+
+            Quagga.onDetected((result) => {
+                alert('Barcode detected: ' + result.codeResult.code);
+                Quagga.stop();
+                document.getElementById('interactive').style.display = 'none';
+                document.getElementById('canvas').style.display = 'none';
+                document.getElementById('logo').style.display = 'block';
+            });
+        }
+          function redirectToURL(url) {
+              window.location.href = url;
+          }
+      </script>
+  </body>
+
+
+</html>
